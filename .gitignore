@@ -1,5 +1,5 @@
-.png
-.tmp
-.docx
-.txt
-.pdf
+*.png
+*.tmp
+*.docx*
+*.txt
+*.pdf
