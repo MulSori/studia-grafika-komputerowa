@@ -44,7 +44,7 @@ def get_heptagon_points(radius, stretch_x=1.0, rotation_deg=0, shear_factor=0):
 
 def draw_variant(variant):
 
-    radius = 100
+    radius = 150
     stretch = 1
     rotation = 0
     shear = 0
@@ -64,7 +64,7 @@ def draw_variant(variant):
         shear = 0.5
 
     elif variant == 5:
-        stretch = 2.5
+        stretch = 1.7
         color = FIOLET
 
     elif variant == 6:
