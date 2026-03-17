@@ -1,27 +1,38 @@
 import pygame
+import sys
 
 pygame.init()
-win = pygame.display.set_mode((600, 600))
+
+WIDTH = 600
+HEIGHT = 600
+win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Zadanie 2")
 
-CZERWONY = (255, 0, 0)
-ZIELONY = (0, 255, 0)
-ZOLTY = (255, 255, 0)
-FIOLETOWY = (128, 0, 128)
-JASNY_NIEBIESKI = (0, 255, 255)
-POMARANCZOWY = (255, 165, 0)
+# kolory
 NIEBIESKI = (0, 0, 255)
-SZARY = (128, 128, 128)
-CZARNY = (0, 0, 0)
 BIALY = (255,255,255)
+CZARNY = (0,0,0)
+
+shape = pygame.Surface((600, 600), pygame.SRCALPHA)
+
+pygame.draw.rect(shape, NIEBIESKI, (100, 200, 400, 200))
+
+pygame.draw.polygon(shape, NIEBIESKI, ([300, 200], [200, 0], [400, 0]))
+
+pygame.draw.polygon(shape, NIEBIESKI, ([300, 400], [200, 600], [400, 600]))
+
+final_shape = pygame.transform.scale(shape, (600, 600))
 
 run = True
 while run:
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            pygame.quit()
+            sys.exit()
+
     win.fill(BIALY)
-    pygame.draw.rect(win, NIEBIESKI, (100, 200, 400, 200))
-    pygame.draw.polygon(win, NIEBIESKI, ([300, 200], [200, 0], [400, 0]))
-    pygame.draw.polygon(win, NIEBIESKI, ([300, 400], [200, 600], [400, 600]))
+
+    win.blit(final_shape, (0,0))
+
     pygame.display.update()
