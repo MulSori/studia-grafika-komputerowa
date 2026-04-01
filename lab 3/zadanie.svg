@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800" height="500"
+  viewBox="0 0 800 500">
+
+  <defs>
+
+    <g id="heptagon" fill="none" stroke="black" stroke-width="2">
+      <polygon points="
+      0,-30 23,-20 28,5 12,25 -12,25 -28,5 -23,-20">
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="3s" repeatCount="indefinite" />
+      </polygon>
+    </g>
+
+    <g id="beam">
+      <line x1="-80" y1="0" x2="80" y2="0" stroke="red" stroke-width="10" />
+      <use xlink:href="#heptagon" transform="translate(-80,0)" />
+      <use xlink:href="#heptagon" transform="translate(80,0)" />
+    </g>
+
+  </defs>
+
+  <g transform="translate(200,150) rotate(-20)">
+    <use xlink:href="#beam" />
+  </g>
+
+  <g transform="translate(550,150) rotate(20)">
+    <use xlink:href="#beam" />
+  </g>
+
+  <g transform="translate(400,320) rotate(15)">
+    <use xlink:href="#beam" transform="scale(1.5)" />
+  </g>
+
+  <polygon points="200,150 180,230 220,230" fill="purple" />
+  <polygon points="550,150 535,220 565,220" fill="green" />
+  <polygon points="400,320 375,440 425,440" fill="blue" />
+
+</svg>
