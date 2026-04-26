@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Scene Graph 2D - Siedmiokąty (Poprawiona Belka)</title>
+    <style>
+        body { 
+            background-color: #eee; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            font-family: sans-serif; 
+            margin: 0;
+            padding: 20px;
+        }
+        canvas { 
+            background-color: white; 
+            border: 1px solid #ccc; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        .controls { 
+            margin-bottom: 15px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 8px; 
+            border: 1px solid #ddd;
+        }
+        label { cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label><input type="checkbox" id="animCheck"> Uruchom Animację</label>
+    </div>
+
+    <canvas id="mainCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById("mainCanvas");
+        const ctx = canvas.getContext("2d");
+        const animCheck = document.getElementById("animCheck");
+
+        let frameNumber = 0;
+        let pixelSize = 1;
+
+        class SceneGraphNode {
+            constructor() {
+                this.color = null;
+            }
+            setColor(c) {
+                this.color = c;
+                return this;
+            }
+            draw(g) {
+                g.save();
+                if (this.color) {
+                    g.fillStyle = this.color;
+                    g.strokeStyle = this.color;
+                }
+                this.doDraw(g);
+                g.restore();
+            }
+            doDraw(g) {}
+        }
+
+        class CompoundObject extends SceneGraphNode {
+            constructor() {
+                super();
+                this.children = [];
+            }
+            add(node) {
+                this.children.push(node);
+                return this;
+            }
+            doDraw(g) {
+                for (let child of this.children) {
+                    child.draw(g);
+                }
+            }
+        }
+
+        class TransformedObject extends SceneGraphNode {
+            constructor(object) {
+                super();
+                this.object = object;
+                this.rotation = 0; 
+                this.scaleX = 1; this.scaleY = 1;
+                this.transX = 0; this.transY = 0;
+            }
+            setRotation(degrees) { this.rotation = degrees; return this; }
+            setScale(sx, sy) { this.scaleX = sx; this.scaleY = sy; return this; }
+            setTranslation(tx, ty) { this.transX = tx; this.transY = ty; return this; }
+            
+            setColor(c) { super.setColor(c); return this; }
+
+            doDraw(g) {
+                g.save();
+                if (this.transX !== 0 || this.transY !== 0) g.translate(this.transX, this.transY);
+                if (this.rotation !== 0) g.rotate(this.rotation * Math.PI / 180);
+                if (this.scaleX !== 1 || this.scaleY !== 1) g.scale(this.scaleX, this.scaleY);
+                this.object.draw(g);
+                g.restore();
+            }
+        }
+
+        const filledRect = new (class extends SceneGraphNode {
+            doDraw(g) { g.fillRect(-0.5, -0.5, 1, 1); }
+        })();
+
+        const filledTriangle = new (class extends SceneGraphNode {
+            doDraw(g) {
+                g.beginPath();
+                g.moveTo(-0.5, 0); g.lineTo(0.5, 0); g.lineTo(0, 1);
+                g.fill();
+            }
+        })();
+
+        const heptagonNode = new (class extends SceneGraphNode {
+            doDraw(g) {
+                const sides = 7;
+                g.lineWidth = pixelSize;
+                g.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    let angle = (Math.PI * 2 / sides) * i;
+                    let x = 0.5 * Math.cos(angle);
+                    let y = 0.5 * Math.sin(angle);
+                    if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+                }
+                g.closePath();
+                g.stroke();
+                
+                for (let i = 0; i < sides; i++) {
+                    let angle = (Math.PI * 2 / sides) * i;
+                    g.beginPath();
+                    g.moveTo(0, 0);
+                    g.lineTo(0.5 * Math.cos(angle), 0.5 * Math.sin(angle));
+                    g.stroke();
+                }
+            }
+        })();
+
+
+        let world;
+        let wheels = []; 
+
+        function createUnit(x, y, scale, color) {
+            let unit = new CompoundObject();
+
+            let base = new TransformedObject(filledTriangle);
+            base.setColor(color).setScale(0.6, 2.0).setTranslation(0, -2);
+            unit.add(base);
+
+            let propGroup = new CompoundObject();
+            
+            let redBeam = new TransformedObject(filledRect);
+            redBeam.setColor("red").setScale(2.2, 0.15);
+            propGroup.add(redBeam);
+
+            let wheelLeft = new TransformedObject(heptagonNode);
+            wheelLeft.setColor("black").setTranslation(-1.1, 0);
+            propGroup.add(wheelLeft);
+            wheels.push(wheelLeft); 
+
+            let wheelRight = new TransformedObject(heptagonNode);
+            wheelRight.setColor("black").setTranslation(1.1, 0);
+            propGroup.add(wheelRight);
+            wheels.push(wheelRight); 
+
+            let staticPropContainer = new TransformedObject(propGroup);
+            unit.add(staticPropContainer);
+
+            return new TransformedObject(unit).setTranslation(x, y).setScale(scale, scale);
+        }
+
+        function createWorld() {
+            world = new CompoundObject();
+            world.add(createUnit(-2.5, 1.2, 0.5, "purple"));
+            world.add(createUnit(0.2, -1.0, 0.8, "blue"));
+            world.add(createUnit(2.2, 1.5, 0.4, "green"));
+        }
+
+        function updateFrame() {
+            frameNumber++;
+            for (let wheel of wheels) {
+                wheel.setRotation(frameNumber * 3);
+            }
+        }
+
+        function applyLimits(g, xleft, xright, ytop, ybottom) {
+            let width = canvas.width;
+            let height = canvas.height;
+            g.scale(width / (xright - xleft), height / (ybottom - ytop));
+            g.translate(-xleft, -ytop);
+            pixelSize = Math.abs((xright - xleft) / width);
+        }
+
+        function draw() {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            applyLimits(ctx, -4, 4, 3, -3);
+
+            if (world) world.draw(ctx);
+
+            if (animCheck.checked) {
+                updateFrame();
+            }
+            requestAnimationFrame(draw);
+        }
+
+        createWorld();
+        draw();
+    </script>
+</body>
+</html>
