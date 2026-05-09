@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html>
+
+<!--
+ Use OpenGL and GLUT to draw a simple cube
+  with each face being a different color.  Rotations
+  can be applied with the arrow keys, the page up
+  key, and the page down key.  The home key will set
+  all rotations to 0.  Initial rotations about the
+  x, y, and z axes are 15, -15, and 0.  
+
+  This program is meant as an example of using modeling
+  transforms, with glPushMatrix and glPopMatrix.
+ 
+  Note that this program does not use lighting.
+-->
+
+<head>
+<meta charset="UTF-8">
+<title>Unlit Cube Example</title>
+
+<script src="glsim.js"></script>  <!-- load the OpenGL 1.1 simulation code -->
+
+<script>
+
+    let rotateX = 15;
+    let rotateY = -15;
+    let rotateZ = 0;
+    let objectNumber = 1;
+
+
+
+
+    function corkscrew() {
+        glBegin(GL_POINTS);
+        let turns = 7;
+        let pointsPerTurn = 50;
+        let totalPoints = turns * pointsPerTurn;
+        
+        for (let i = 0; i <= totalPoints; i++) {
+            let t = i / pointsPerTurn;
+            let angle = t * 2 * Math.PI;
+            let x = 0.5 * Math.cos(angle);
+            let y = 0.5 * Math.sin(angle);
+            let z = (t / turns) - 0.5;
+            
+
+            glPointSize(1.0 + (i / totalPoints) * 5.0);
+            glColor3f(0.0, 1.0, 0.0);
+            glVertex3f(x, y, z);
+        }
+        glEnd();
+    }
+
+
+    function triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3) {
+        glBegin(GL_TRIANGLES);
+        glVertex3f(x1, y1, z1);
+        glVertex3f(x2, y2, z2);
+        glVertex3f(x3, y3, z3);
+        glEnd();
+    }
+
+    function pyramid(sides) {
+        let radius = 0.5;
+        let height = 0.8;
+        
+
+        glColor3f(0.0, 0.0, 1.0);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex3f(0, -height/2, 0);
+        for (let i = 0; i <= sides; i++) {
+            let angle = (i / sides) * 2 * Math.PI;
+            glVertex3f(radius * Math.cos(angle), -height/2, radius * Math.sin(angle));
+        }
+        glEnd();
+
+
+        glColor3f(0.6, 0.3, 0.1);
+        for (let i = 0; i < sides; i++) {
+            let a1 = (i / sides) * 2 * Math.PI;
+            let a2 = ((i + 1) / sides) * 2 * Math.PI;
+            
+            triangle(
+                radius * Math.cos(a1), -height/2, radius * Math.sin(a1),
+                radius * Math.cos(a2), -height/2, radius * Math.sin(a2),
+                0, height/2, 0
+            );
+        }
+    }
+
+
+    function display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        glRotatef(rotateZ, 0, 0, 1);
+        glRotatef(rotateY, 0, 1, 0);
+        glRotatef(rotateX, 1, 0, 0);
+
+        if (objectNumber == 1) {
+            corkscrew();
+        } else {
+            pyramid(7);
+        }
+    }
+
+    function doKeyDown(evt) {
+        let key = evt.keyCode;
+        
+        if (key == 49) objectNumber = 1; 
+        else if (key == 50) objectNumber = 2; 
+        
+
+        else if (key == 37) rotateY -= 15;
+        else if (key == 39) rotateY += 15;
+        else if (key == 40) rotateX += 15;
+        else if (key == 38) rotateX -= 15;
+        else if (key == 33) rotateZ += 15;
+        else if (key == 34) rotateZ -= 15;
+        else if (key == 36) rotateX = rotateY = rotateZ = 0;
+
+        if ((key >= 33 && key <= 40) || key == 49 || key == 50) {
+            evt.preventDefault();
+        }
+        display();
+    }
+
+    function initGL() {
+        glMatrixMode(GL_PROJECTION);
+        glOrtho(-1, 1, -1, 1, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0, 0, 0, 1);
+    }
+
+    function init() {
+        try {
+            glsimUse("glcanvas");
+        } catch (e) {
+            document.getElementById("canvas-holder").innerHTML = "Error: " + e;
+            return;
+        }
+        document.onkeydown = doKeyDown;
+        initGL();
+        display();
+    }
+</script>
+
+</head>
+
+<body onload="init()">
+
+<h3>A Simple Unlit Cube in OpenGL 1.1</h3>
+
+<p>(Rotate using arrow keys, page up, page down, and home keys.)</p>
+
+<noscript>
+<p><b>Sorry, this page requires JavaScript!</b></p>
+</noscript>
+
+<div id="canvas-holder">
+<canvas id="glcanvas" width="500" height="500"></canvas>
+</div>
+
+</body>
+</html>
